@@ -5,11 +5,16 @@ from agents.ideation_agent import run_ideation_agent
 from agents.business_agent import run_business_agent
 from agents.legal_agent import run_legal_agent
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # -------------------------------
 # 🔧 CONFIGURATION
 # -------------------------------
-genai.configure(api_key="AIzaSyCELuS_rm0AlVd0YEjyY6AzZZPSR2mBkEk")
-router_model = genai.GenerativeModel("gemini-2.5-flash")
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+router_model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
 # -------------------------------
 # 🧠 LLM-BASED ROUTER

@@ -6,9 +6,14 @@ import re
 
 print("all good")
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
-    api_key="AIzaSyCELuS_rm0AlVd0YEjyY6AzZZPSR2mBkEk"
+    api_key=os.getenv("GOOGLE_API_KEY")
 )
 
 system_message = SystemMessage(content="""
@@ -60,17 +65,32 @@ def run_ideation_agent(user_input, chat_history=[], session_state=None):
     """
     Takes user input, generates or updates startup ideas, and optionally stores chosen idea.
     """
-    # Only keep LangChain message objects for LLM
-    lc_history = [msg for msg in chat_history if hasattr(msg, "type") and hasattr(msg, "content")]
+    # Convert chat_history to LangChain message objects
+    lc_history = []
+    for msg in chat_history:
+        role = ""
+        content = ""
+        if hasattr(msg, "type") and hasattr(msg, "content"):
+            role = "user" if msg.type == "human" else "assistant"
+            content = msg.content
+        elif isinstance(msg, dict):
+            role = msg.get("role", "assistant")
+            content = msg.get("content", "")
+        else:
+            role = "assistant" 
+            content = str(msg)
+        
+        if role == "user":
+            lc_history.append(HumanMessage(content=content))
+        elif role == "assistant":
+            lc_history.append(AIMessage(content=content))
 
     lc_history.append(HumanMessage(content=user_input))
     response = llm(lc_history)
     ai_reply = response.content
-    lc_history.append(AIMessage(content=ai_reply))
-
-    # Also update the main chat_history with the new messages
-    chat_history.append(HumanMessage(content=user_input))
-    chat_history.append(AIMessage(content=ai_reply))
+    
+    # NOTE: We do NOT append to chat_history here anymore.
+    # The Manager Agent handles memory updates to avoid duplication.
 
     # Extract ideas from AI’s answer (store in session for reference)
     ideas = extract_ideas(ai_reply)

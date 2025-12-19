@@ -1,7 +1,12 @@
 import google.generativeai as genai
 
-genai.configure(api_key="AIzaSyCELuS_rm0AlVd0YEjyY6AzZZPSR2mBkEk")
-model = genai.GenerativeModel("gemini-2.5-pro")
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
 LEGAL_SYSTEM_PROMPT = """
 You are 'LexAI' — a legal and regulatory compliance assistant for startups (Axe 6).
@@ -51,8 +56,8 @@ If unrelated to legal/compliance, politely decline.
 Otherwise, respond as a professional legal assistant.
 """
     reply = model.generate_content(prompt).text.strip()
-    chat_history.append({"role": "user", "content": user_input})
-    chat_history.append({"role": "assistant", "content": reply})
+    # NOTE: We do NOT append to chat_history here. 
+    # Manager Agent handles it.
     return reply
 
 def run_legal_agent(user_input, chat_history=[]):

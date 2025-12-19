@@ -3,11 +3,16 @@
 import google.generativeai as genai
 import json
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # --------------------------------
 # ⚙️ CONFIGURE GEMINI
 # --------------------------------
-genai.configure(api_key="AIzaSyCELuS_rm0AlVd0YEjyY6AzZZPSR2mBkEk")  # replace with your key
-model = genai.GenerativeModel("gemini-2.5-pro")
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+model = genai.GenerativeModel("gemini-2.5-flash")
 classifier_model = genai.GenerativeModel("gemini-2.5-flash")  # fast, for classification
 
 
@@ -119,8 +124,10 @@ Otherwise, respond as a professional consultant would.
     response = model.generate_content(prompt)
     reply = response.text.strip()
 
-    chat_history.append({"role": "user", "content": user_input})
-    chat_history.append({"role": "assistant", "content": reply})
+    reply = response.text.strip()
+
+    # NOTE: We do NOT append to chat_history here. 
+    # Manager Agent handles it.
 
     return reply
 
